@@ -1,16 +1,19 @@
 import React from 'react';
-import {View, Text, SafeAreaView} from 'react-native';
+import {SafeAreaView} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {MainContextProvider} from './src/contexts';
 import {MainStackNavigation} from './src/navigation';
+import {RealmProvider} from '@realm/react';
 
 export const App = () => {
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView style={{flex: 1}}>
       <SafeAreaView style={{flex: 1}}>
-        <MainContextProvider>
-          <MainStackNavigation />
-        </MainContextProvider>
+        <RealmProvider>
+          <MainContextProvider>
+            <MainStackNavigation />
+          </MainContextProvider>
+        </RealmProvider>
       </SafeAreaView>
     </GestureHandlerRootView>
   );
