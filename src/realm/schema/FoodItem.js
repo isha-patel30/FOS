@@ -5,7 +5,7 @@ export const FoodItemSchema = {
     itemName: 'string',
     foodCategory: 'FoodCategory',
     portionQuantity: 'int',
-    foodQuantityUnit: 'FoodQuantity',
+    foodQuantityUnit: 'FoodQuantityUnit',
     serverItemId: 'string',
   },
   primaryKey: 'localItemId',

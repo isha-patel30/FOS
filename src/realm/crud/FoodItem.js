@@ -14,9 +14,6 @@ export const addFoodItemRecords = records => {
   } catch (error) {
     console.log('Error adding the food item record', error);
   }
-  realm.write(() => {
-    realm.create('FoodItem', record);
-  });
 };
 
 export const deleteFoodItemRecords = primaryKeyValues => {

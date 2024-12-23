@@ -1,60 +1,60 @@
 import {realm} from '../RealmServices';
 
-export const addFoodQuantityUnitRecords = records => {
+export const addSyncingDependencyRecord = records => {
   try {
     realm.write(() => {
       if (Array.isArray(records)) {
         records.forEach(record => {
-          realm.create('FoodQuantityUnit', record);
+          realm.create('SyncingDependency', record);
         });
       } else {
-        realm.create('FoodQuantityUnit', records);
+        realm.create('SyncingDependency', records);
       }
     });
   } catch (error) {
-    console.log('Error adding Food quantity unit records', error);
+    console.log('Error adding syncing dependency record:', error);
   }
 };
 
-export const deleteFoodQuantityUnitRecords = primaryKeyValues => {
+export const deleteSyncingDependencyRecords = primaryKeyValues => {
   try {
     realm.write(() => {
       if (Array.isArray(primaryKeyValues)) {
-        primaryKeyValues.forEach(key => {
+        primaryKeyValues.forEach(primaryKey => {
           const recordToDelete = realm.objectForPrimaryKey(
-            'FoodQuantityUnit',
-            key,
+            'SyncingDependency',
+            primaryKey,
           );
           if (recordToDelete) {
             realm.delete(recordToDelete);
           } else {
-            console.log('No record found for key');
+            console.log('No record found to delete');
           }
         });
       } else {
         const recordToDelete = realm.objectForPrimaryKey(
-          'FoodQuantityUnit',
+          'SyncingDependency',
           primaryKeyValues,
         );
         if (recordToDelete) {
           realm.delete(recordToDelete);
         } else {
-          console.log('No record to delete');
+          console.log('No records to delete');
         }
       }
     });
   } catch (error) {
-    console.log('Error deleting Food quantity unit records', error);
+    console.log('Error in delete syncing dependency records:', error);
   }
 };
 
-export const updateFoodQuantityUnitRecords = updates => {
+export const updateSyncingDependencyRecords = updates => {
   try {
     realm.write(() => {
       if (Array.isArray(updates)) {
         updates.forEach(({primaryKey, updatedData}) => {
           const recordToUpdate = realm.objectForPrimaryKey(
-            'FoodQuantityUnit',
+            'SyncingDependency',
             primaryKey,
           );
           if (recordToUpdate) {
@@ -62,13 +62,13 @@ export const updateFoodQuantityUnitRecords = updates => {
               recordToUpdate[key] = updatedData[key];
             });
           } else {
-            console.log('No record to update');
+            console.log('No record found to update');
           }
         });
       } else {
         const {primaryKey, updatedData} = updates;
         const recordToUpdate = realm.objectForPrimaryKey(
-          'FoodQuantityUnit',
+          'SyncingDependency',
           primaryKey,
         );
         if (recordToUpdate) {
@@ -81,16 +81,19 @@ export const updateFoodQuantityUnitRecords = updates => {
       }
     });
   } catch (error) {
-    console.log('Error updating Food quantity unit records', error);
+    console.log('Error updating syncing dependency records:', error);
   }
 };
 
-export const fetchFoodQuantiyUnits = () => {
+export const fetchSyncingDependencies = () => {
   try {
-    const foodCategories = realm.objects('FoodQuantityUnit');
-    console.log('foodCategories in realm/crud: ', Array.from(foodCategories));
-    return Array.from(foodCategories);
+    const syncyingDependencies = realm.objects('SyncingDependency');
+    console.log(
+      'syncyingDependencies in realm/crud: ',
+      Array.from(syncyingDependencies),
+    );
+    return Array.from(syncyingDependencies);
   } catch (error) {
-    console.log('Error fetching food quantities', error);
+    console.log('Error fetching syncing dependencies:', error);
   }
 };
