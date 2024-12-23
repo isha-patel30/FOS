@@ -1,0 +1,49 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/theme/fonts/Inter-Thin.ttf",
+      "sha1": "2534deaee8e837f29f2e6533f1792efe62fd27d6"
+    },
+    {
+      "path": "src/theme/fonts/Lato-Black.ttf",
+      "sha1": "4fa7d5cfe0774c806f6e69bec9ea0dd6923cae26"
+    },
+    {
+      "path": "src/theme/fonts/Lato-Bold.ttf",
+      "sha1": "e87d99a300317fd927c0a512be856b3caf52d61f"
+    },
+    {
+      "path": "src/theme/fonts/Lato-Light.ttf",
+      "sha1": "1b062f93802e0e9f4b2028ef7556ffe4e5ed8c99"
+    },
+    {
+      "path": "src/theme/fonts/Lato-Regular.ttf",
+      "sha1": "06775847c3ad5bdc4525009f41aaf585bfcba4c2"
+    },
+    {
+      "path": "src/theme/fonts/Lato-Thin.ttf",
+      "sha1": "410476d9d3eaa16c73bc989e4d4656b32d756585"
+    },
+    {
+      "path": "src/theme/fonts/Myriad-Pro-Black-SemiCondensed.otf",
+      "sha1": "af27be61622de67bbd43d606e166ac702723a300"
+    },
+    {
+      "path": "src/theme/fonts/Myriad-Pro-Bold-SemiExtended.otf",
+      "sha1": "3f41ccee31e60ee68b050338b501bba1715d2c08"
+    },
+    {
+      "path": "src/theme/fonts/Myriad-Pro-Bold.ttf",
+      "sha1": "2138bbeb2ae24b68e6cb6b02a9ce550ec3ef2936"
+    },
+    {
+      "path": "src/theme/fonts/Myriad-Pro-SemiExtended.otf",
+      "sha1": "563b747ed365155a2122e65ae6e2d9b12276992a"
+    },
+    {
+      "path": "src/theme/fonts/Myriad-Pro-Semibold-SemiExtended.otf",
+      "sha1": "2e434213b072452f8d5ca5022a04a7ff20309779"
+    }
+  ]
+}
