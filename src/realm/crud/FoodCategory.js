@@ -85,7 +85,6 @@ export const updateFoodCategoryRecords = updates => {
 export const fetchFoodCategories = () => {
   try {
     const foodCategories = realm.objects('FoodCategory');
-    console.log('foodCategories in realm/crud: ', Array.from(foodCategories));
     return Array.from(foodCategories);
   } catch (error) {
     console.log('Error fetching food categories', error);

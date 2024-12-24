@@ -1,9 +1,5 @@
 import moment from 'moment';
 
-// INFO: all global functions will be added here
-export const sum = (a, b) => {
-  return a + b;
-};
 // ** allow only number value
 export const NumberValidation = val => {
   let alphaNumericRegex = /^([0-9])*$/;
@@ -19,16 +15,15 @@ export const StringValidation = val => {
   let characterRegex = /^[a-zA-Z\s?.?]*$/;
   return characterRegex.test(val);
 };
+
 export const passwordValidation = val => {
   passwordPattern =
     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])([a-zA-Z0-9@$!%*?&]{8,})$/;
   return passwordPattern.test(val);
 };
-export const formatCreditCardNumber = input => {
-  // Remove non-numeric characters
-  const numericInput = input.replace(/(.{4})/g, '$1 ');
 
-  // Insert a space after every 4 digits
+export const formatCreditCardNumber = input => {
+  const numericInput = input.replace(/(.{4})/g, '$1 ');
   let formattedInput = '';
   for (let i = 0; i < numericInput.length; i += 4) {
     formattedInput += numericInput.slice(i, i + 4) + ' ';
@@ -39,8 +34,8 @@ export const formatCreditCardNumber = input => {
 
   return formattedInput;
 };
+
 export const invertColor = color => {
-  // Assuming color is in the format 'rgba(r, g, b, a)'
   const values = color.match(/\d+/g).map(Number);
   const invertedValues = values.map(v => 255 - v);
   const alpha = values[3] || 1; // Preserve alpha if present
@@ -92,6 +87,7 @@ export const compareExpiryDate = inputDate => {
     return false;
   }
 };
+
 export const validateCVV = cvv => {
   // Assuming CVV should be a 3 or 4-digit number
   if (cvv) {
@@ -142,4 +138,9 @@ export const formatCurrency = amount => {
   });
 
   return currencyFormatter.format(amount);
+};
+
+export const convertDateToTimeStamp = date => {
+  const timeStamp = new Date(date);
+  return timeStamp.getTime();
 };
