@@ -1,9 +1,10 @@
 export const FoodCategorySchema = {
   name: 'FoodCategory',
   properties: {
-    localCategoryId: 'string',
+    localCategoryId: 'objectId',
     categoryName: 'string',
     serverCategoryId: 'string',
+    isActive: 'int',
   },
   primaryKey: 'localCategoryId',
 };

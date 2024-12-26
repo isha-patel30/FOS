@@ -13,8 +13,6 @@ function _post(url, headers, data) {
         ? data
         : JSON.stringify(data),
   };
-  console.log('🚀 ~ _post ~ options:', options);
-
   showLog && console.log('POST API OPTIONS ==>', options);
 
   return axios(options)
@@ -135,9 +133,7 @@ function _delete(url, headers, data) {
 }
 
 function _api_calls(type, url, headers = {}, data = {}) {
-  url = `${
-    'https://8089-2405-201-2006-700c-d918-6ebf-a7c8-bb3d.ngrok-free.app' + url
-  }`;
+  url = `${BASE_URL + url}`;
 
   switch (type) {
     case 'POST':

@@ -5,10 +5,11 @@ export const addFoodQuantityUnitRecords = records => {
     realm.write(() => {
       if (Array.isArray(records)) {
         records.forEach(record => {
-          realm.create('FoodQuantityUnit', record);
+          realm.create('FoodQuantityUnit', Array.from(record));
         });
       } else {
-        realm.create('FoodQuantityUnit', records);
+        console.log('Food quantity unit record: ', records);
+        realm.create('FoodQuantityUnit', Array.from(records));
       }
     });
   } catch (error) {
@@ -88,6 +89,7 @@ export const updateFoodQuantityUnitRecords = updates => {
 export const fetchFoodQuantiyUnits = () => {
   try {
     const foodQuanityUnits = realm.objects('FoodQuantityUnit');
+    console.log(foodQuanityUnits);
     return Array.from(foodQuanityUnits);
   } catch (error) {
     console.log('Error fetching food quantities', error);

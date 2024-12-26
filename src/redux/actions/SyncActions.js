@@ -1,5 +1,13 @@
 import * as actions from '../Types';
 
+export const networkIsConnected = connected => {
+  console.log('connected in action: ', connected);
+  return {
+    type: actions.IS_CONNECTED,
+    payload: connected,
+  };
+};
+
 export const syncStarted = module => {
   return {
     type: actions.START_SYNC_TIME,

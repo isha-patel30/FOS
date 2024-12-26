@@ -1,7 +1,7 @@
 export const SyncingDependencySchema = {
   name: 'SyncingDependency',
   properties: {
-    localModuleDependencyId: 'string',
+    localModuleDependencyId: 'objectId',
     moduleName: 'string',
     syncPeriodInMinutes: 'int',
     syncFailureResetInMinutes: 'int',
