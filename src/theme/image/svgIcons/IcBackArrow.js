@@ -6,7 +6,7 @@ export const BackArrow = props => {
   return (
     <Svg
       width={props.width ?? 9}
-      height={props.height ?? 16}
+      height={props.height ?? 14}
       viewBox="0 0 9 16"
       color={props.fill ?? color.secondary}
       xmlns="http://www.w3.org/2000/svg"

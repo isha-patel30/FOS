@@ -48,6 +48,22 @@ export const deleteSyncingDependencyRecords = primaryKeyValues => {
   }
 };
 
+export const deleteAllSyncingDependencyRecords = () => {
+  try {
+    realm.write(() => {
+      const syncyingDependencies = realm.objects('SyncingDependency');
+      if (syncyingDependencies) {
+        realm.delete(syncyingDependencies);
+        console.log('deleted all records');
+      } else {
+        console.log('No syncing dependency records to delete');
+      }
+    });
+  } catch (error) {
+    console.log('Error deleting all syncing dependency records:', error);
+  }
+};
+
 export const updateSyncingDependencyRecords = updates => {
   try {
     realm.write(() => {
@@ -88,12 +104,41 @@ export const updateSyncingDependencyRecords = updates => {
 export const fetchSyncingDependencies = () => {
   try {
     const syncyingDependencies = realm.objects('SyncingDependency');
-    console.log(
-      'syncyingDependencies in realm/crud: ',
-      Array.from(syncyingDependencies),
-    );
-    return Array.from(syncyingDependencies);
+    if (syncyingDependencies) {
+      console.log('Syncing dependencies:', syncyingDependencies);
+      return Array.from(syncyingDependencies);
+    } else {
+      console.log('No syncing dependencies found');
+    }
   } catch (error) {
     console.log('Error fetching syncing dependencies:', error);
+  }
+};
+
+export const fetchSyncingDependencyById = primaryKey => {
+  try {
+    const syncingDependency = realm.objectForPrimaryKey(
+      'SyncingDependency',
+      primaryKey,
+    );
+    return syncingDependency;
+  } catch (error) {
+    console.log('Error fetching syncing dependency by id:', error);
+  }
+};
+
+export const fetchSyncingDependencyByModuleName = moduleName => {
+  try {
+    const results = realm
+      .objects('SyncingDependency')
+      .filtered(`moduleName == "${moduleName}"`);
+    if (results) {
+      return results.length > 0 ? results[0] : null;
+    } else {
+      console.log('No syncing dependency found for module name:', moduleName);
+      return null;
+    }
+  } catch (error) {
+    console.log('Error fetching syncing dependency by module name:', error);
   }
 };

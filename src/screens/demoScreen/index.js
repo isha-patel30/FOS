@@ -5,8 +5,6 @@ import {_foodQuantityUnitSync} from '../../services/api-services';
 import Realm from 'realm';
 
 export const DemoScreen = () => {
-  console.log('demoscreen');
-
   useEffect(() => {
     const foodQuantityUnitSync = () => {
       try {

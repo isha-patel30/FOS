@@ -6,10 +6,10 @@ export const SyncingDependencySchema = {
     syncPeriodInMinutes: 'int',
     syncFailureResetInMinutes: 'int',
     priority: 'int',
-    lastSyncedAt: 'date?',
-    nextSyncAt: 'date?',
+    lastSyncedAt: 'int?',
+    nextSyncAt: 'int?',
     isSyncInProgress: 'bool',
-    syncStartedAt: 'date?',
+    syncStartedAt: 'int?',
   },
   primaryKey: 'localModuleDependencyId',
 };

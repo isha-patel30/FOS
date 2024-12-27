@@ -141,6 +141,5 @@ export const formatCurrency = amount => {
 };
 
 export const convertDateToTimeStamp = date => {
-  const timeStamp = new Date(date);
-  return timeStamp.getTime();
+  return date instanceof Date ? date.getTime() : null;
 };

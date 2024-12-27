@@ -1,7 +1,8 @@
 import {Dimensions, Platform} from 'react-native';
-import {hasNotch} from 'react-native-device-info';
+import DeviceInfo, {hasNotch} from 'react-native-device-info';
 
 const {width, height} = Dimensions.get('window');
+const isTablet = DeviceInfo.getDeviceType() === 'Tablet';
 
 const [shortDimension, longDimension] =
   width < height ? [width, height] : [height, width];
@@ -14,7 +15,7 @@ const scale = size => (shortDimension / guidelineBaseWidth) * size;
 
 const verticalScale = size => (longDimension / guidelineBaseHeight) * size;
 
-const moderateScale = (size, factor = 0.5) =>
+const moderateScale = (size, factor = isTablet ? 0.05 : 0.5) =>
   size + (scale(size) - size) * factor;
 
 const isIPhoneXSize = dim => {

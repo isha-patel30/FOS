@@ -13,5 +13,5 @@ export const realm = new Realm({
     FoodQuantityUnitSchema,
     SyncingDependencySchema,
   ],
-  schemaVersion: 1,
+  schemaVersion: 4,
 });

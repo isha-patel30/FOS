@@ -4,6 +4,7 @@ const context = createContext();
 export const MainContextProvider = props => {
   const [userName, setUserName] = useState('');
   const [id, setId] = useState([]);
+  const [isTablet, setIsTablet] = useState(false);
 
   const value = useMemo(() => {
     return {
@@ -11,8 +12,10 @@ export const MainContextProvider = props => {
       setUserName: setUserName,
       id: id,
       setId: setId,
+      isTablet: isTablet,
+      setIsTablet: setIsTablet,
     };
-  }, [userName, setUserName, id, setId]);
+  }, [userName, setUserName, id, setId, isTablet, setIsTablet]);
 
   return <context.Provider value={value}>{props.children}</context.Provider>;
 };
