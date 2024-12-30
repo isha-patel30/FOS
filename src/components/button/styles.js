@@ -3,8 +3,8 @@ import {color, fonts, fontSize, size} from '../../theme';
 export const mainView = () => ({
   flexDirection: 'row',
   backgroundColor: color.primary,
-  height: size.moderateScale(40),
-  paddingHorizontal: size.moderateScale(30),
+  height: size.moderateScale(35),
+  paddingHorizontal: size.moderateScale(20),
   borderRadius: size.moderateScale(8),
   elevation: size.moderateScale(10),
   shadowColor: color.primary,

@@ -5,10 +5,34 @@ export const addSyncingDependencyRecord = records => {
     realm.write(() => {
       if (Array.isArray(records)) {
         records.forEach(record => {
-          realm.create('SyncingDependency', record);
+          const existingRecord = realm.objectForPrimaryKey(
+            'SyncingDependency',
+            record.localModuleDependencyId,
+          );
+          if (existingRecord) {
+            Object.keys(record).forEach(key => {
+              if (key !== 'localModuleDependencyId') {
+                existingRecord[key] = record[key];
+              }
+            });
+          } else {
+            realm.create('SyncingDependency', record);
+          }
         });
       } else {
-        realm.create('SyncingDependency', records);
+        const existingRecord = realm.objectForPrimaryKey(
+          'SyncingDependency',
+          records.localModuleDependencyId,
+        );
+        if (existingRecord) {
+          Object.keys(records).forEach(key => {
+            if (key !== 'localModuleDependencyId') {
+              existingRecord[key] = records[key];
+            }
+          });
+        } else {
+          realm.create('SyncingDependency', records);
+        }
       }
     });
   } catch (error) {
@@ -105,7 +129,7 @@ export const fetchSyncingDependencies = () => {
   try {
     const syncyingDependencies = realm.objects('SyncingDependency');
     if (syncyingDependencies) {
-      console.log('Syncing dependencies:', syncyingDependencies);
+      // console.log('Syncing dependencies:', syncyingDependencies);
       return Array.from(syncyingDependencies);
     } else {
       console.log('No syncing dependencies found');

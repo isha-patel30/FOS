@@ -2,14 +2,13 @@ import {color, fonts, fontSize, size} from '../../theme';
 
 export const scrollStyle = () => ({
   flexGrow: 1,
-  marginBottom: size.moderateScale(40),
+  marginTop: size.moderateScale(40),
   marginHorizontal: size.moderateScale(30),
-  paddingBottom: size.moderateScale(50),
+  paddingBottom: size.moderateScale(100),
 });
 
 export const header = () => ({
   elevation: size.moderateScale(10),
-  marginBottom: size.moderateScale(20),
 });
 
 export const buttonView = () => ({
@@ -121,22 +120,26 @@ export const categoryItemCount = () => ({
 export const listItem = () => ({
   flexDirection: 'row',
   backgroundColor: color.white,
+  minHeight: size.moderateScale(50),
 });
 
 export const itemsViewBody = () => ({
   flex: 1,
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  borderRightWidth: size.moderateScale(1),
-  paddingVertical: size.moderateScale(10),
-  borderRightColor: color.borderColor,
   flexDirection: 'row',
-  paddingHorizontal: size.moderateScale(10),
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
   minHeight: size.moderateScale(50),
+  paddingVertical: size.moderateScale(10),
+  paddingHorizontal: size.moderateScale(10),
+  borderRightWidth: size.moderateScale(1),
+  borderRightColor: color.borderColor,
+  borderBottomWidth: size.moderateScale(1),
+  borderBottomColor: color.borderColor,
 });
 
 export const itemDetails = () => ({
   gap: size.moderateScale(5),
+  justifyContent: 'flex-start',
 });
 
 export const foodItem = () => ({
@@ -161,6 +164,8 @@ export const portionViewBody = () => ({
   paddingVertical: size.moderateScale(10),
   flexDirection: 'row',
   gap: size.moderateScale(8),
+  borderBottomWidth: size.moderateScale(1),
+  borderBottomColor: color.borderColor,
 });
 
 export const iconview = () => ({
@@ -172,8 +177,7 @@ export const iconview = () => ({
 });
 
 export const quantityTextView = () => ({
-  width: size.moderateScale(30),
-  borderBottomWidth: size.moderateScale(1),
+  width: size.moderateScale(40),
 });
 
 export const quantityText = () => ({
@@ -195,9 +199,11 @@ export const totalQuantityView = () => ({
 
 export const totalPortionView = () => ({
   flex: 0.5,
-  alignItems: 'flex-end',
-  justifyContent: 'center',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
   paddingVertical: size.moderateScale(10),
+  gap: size.moderateScale(10),
 });
 
 export const tableBottomView = () => ({
@@ -211,5 +217,5 @@ export const tableBottomText = () => ({
   fontSize: fontSize.littleMedium,
   fontFamily: fonts.latoBlack,
   color: color.mostlyBlack,
-  paddingHorizontal: size.moderateScale(10),
+  paddingRight: size.moderateScale(10),
 });

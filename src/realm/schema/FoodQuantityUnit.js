@@ -4,7 +4,7 @@ export const FoodQuantityUnitSchema = {
     localFoodQuantityUnitId: 'objectId',
     unitName: 'string',
     unitShortName: 'string',
-    serverFoodQuantityUnitId: 'string',
+    serverQuantityUnitId: 'string',
     isActive: 'int',
   },
   primaryKey: 'localFoodQuantityUnitId',

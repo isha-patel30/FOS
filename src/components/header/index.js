@@ -16,9 +16,15 @@ export const Header = ({
   rightIconPress,
   showRightButton1,
   rightButtonProps1,
+  showRightButton2,
+  rightButtonProps2,
 }) => {
   return (
-    <View style={[styles.mainView(), headerStyle]}>
+    <View
+      style={[
+        styles.mainView(showRightButton1 || showRightButton2),
+        headerStyle,
+      ]}>
       {leftIcon && (
         <TouchableOpacity style={styles.iconView()} onPress={leftIconPress}>
           {renderLeftIcon()}
@@ -27,8 +33,11 @@ export const Header = ({
       <View style={styles.headerTextView(leftIcon)}>
         {title && <Text style={styles.headerText()}>{headerTitle}</Text>}
       </View>
-      {showRightButton1 ? (
-        <Button {...rightButtonProps1} />
+      {showRightButton1 && showRightButton2 ? (
+        <View style={styles.headerBtnView()}>
+          <Button {...rightButtonProps1} />
+          <Button {...rightButtonProps2} />
+        </View>
       ) : (
         rightIcon && (
           <TouchableOpacity style={styles.iconView()} onPress={rightIconPress}>

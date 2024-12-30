@@ -1,14 +1,45 @@
+import Realm from 'realm';
 import {realm} from '../RealmServices';
+
+const showLog = false;
 
 export const addFoodCategoryRecords = records => {
   try {
     realm.write(() => {
       if (Array.isArray(records)) {
         records.forEach(record => {
-          realm.create('FoodCategory', record);
+          const existingRecord = realm
+            .objects('FoodCategory')
+            .filtered(`serverCategoryId == "${record.serverCategoryId}"`);
+          if (existingRecord.length === 0) {
+            const updatedRecord = {
+              ...record,
+              localCategoryId: new Realm.BSON.ObjectId(),
+            };
+            realm.create('FoodCategory', updatedRecord);
+          } else {
+            showLog &&
+              console.log(
+                `Record with serverCategoryId ${record.serverCategoryId} already exists`,
+              );
+          }
         });
       } else {
-        realm.create('FoodCategory', records);
+        const existingRecord = realm
+          .objects('FoodCategory')
+          .filtered(`serverCategoryId == "${records.serverCategoryId}"`);
+        if (existingRecord.length === 0) {
+          const updatedRecord = {
+            ...records,
+            localCategoryId: new Realm.BSON.ObjectId(),
+          };
+          realm.create('FoodCategory', updatedRecord);
+        } else {
+          showLog &&
+            console.log(
+              `Record with serverCategoryId ${records.serverCategoryId} already exists`,
+            );
+        }
       }
     });
   } catch (error) {
@@ -85,6 +116,7 @@ export const updateFoodCategoryRecords = updates => {
 export const fetchFoodCategories = () => {
   try {
     const foodCategories = realm.objects('FoodCategory');
+    console.log('foodCategories in realm/crud: ', foodCategories);
     return Array.from(foodCategories);
   } catch (error) {
     console.log('Error fetching food categories', error);

@@ -3,9 +3,9 @@ export const FoodItemSchema = {
   properties: {
     localItemId: 'objectId',
     itemName: 'string',
-    foodCategory: 'FoodCategory',
+    foodCategory: 'string',
     portionQuantity: 'int',
-    foodQuantityUnit: 'FoodQuantityUnit',
+    foodQuantityUnit: 'string',
     serverItemId: 'string',
     isActive: 'int',
   },

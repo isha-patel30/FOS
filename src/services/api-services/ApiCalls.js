@@ -6,9 +6,14 @@ import {API_KEY} from '../../config';
 import {convertDateToTimeStamp, isNetworkConnected} from '../../utils';
 import {
   addSyncingDependencyRecord,
+  fetchFoodCategories,
+  fetchFoodItems,
+  fetchFoodQuantiyUnits,
   fetchSyncingDependencies,
   fetchSyncingDependencyByModuleName,
 } from '../../realm';
+
+const userKey = '866b102764982f2cc13da3860c2beb243decf6e132abf9b24432bfd2ef';
 
 /**
  * FoodQuantityUnit Calls
@@ -102,9 +107,8 @@ export const _foodCategoryDetail = async (userKey, id) => {
  */
 
 // food item sync call
-export const _foodItemSync = async (userKey, id) => {
+export const _foodItemSync = async (userKey, timestamp) => {
   let {_api_calls} = HttpCalls;
-
   let params = {
     apikey: API_KEY,
     type: 'application/json',
@@ -114,7 +118,7 @@ export const _foodItemSync = async (userKey, id) => {
   };
 
   let body = {
-    itemId: id,
+    lastSyncedAt: timestamp,
   };
 
   let headers = await headersData(params);
@@ -145,10 +149,6 @@ export const _foodItemDetail = async (userKey, id) => {
  * Syncing Dependencies
  */
 
-const syncModule = async moduleName => {
-  console.log(`Syncing data for ${moduleName}`);
-};
-
 export const _initializeSyncingDependencies = () => {
   const dependencies = [
     {
@@ -169,92 +169,104 @@ export const _initializeSyncingDependencies = () => {
       syncFailureResetInMinutes: 8,
       priority: 2,
     },
-    {
-      moduleName: 'FoodOrder',
-      syncPeriodInMinutes: 5,
-      syncFailureResetInMinutes: 8,
-      priority: 3,
-    },
   ];
 
   dependencies.forEach(dependency => {
     const existing = fetchSyncingDependencyByModuleName(dependency?.moduleName);
+    const lastSyncedAt = existing?.lastSyncedAt || 0;
     if (!existing) {
-      const newId = new Realm.BSON.ObjectId();
       addSyncingDependencyRecord({
-        localModuleDependencyId: newId,
+        localModuleDependencyId: new Realm.BSON.ObjectId(),
         moduleName: dependency?.moduleName,
         syncPeriodInMinutes: dependency?.syncPeriodInMinutes,
         syncFailureResetInMinutes: dependency?.syncFailureResetInMinutes,
         priority: dependency?.priority,
-        lastSyncedAt: null,
+        lastSyncedAt: lastSyncedAt,
         nextSyncAt: convertDateToTimeStamp(
           new Date(Date.now() + dependency?.syncPeriodInMinutes * 60 * 1000),
         ),
         isSyncInProgress: false,
-        syncStartedAt: null,
+        syncStartedAt: convertDateToTimeStamp(new Date()),
       });
     } else {
-      const existingId = existing.localModuleDependencyId.toString();
-      console.log('Existing ID:', existingId);
       addSyncingDependencyRecord({
-        localModuleDependencyId: existing?.localModuleDependencyId?.toString(),
+        localModuleDependencyId: existing?.localModuleDependencyId,
         moduleName: dependency?.moduleName,
         syncPeriodInMinutes: dependency?.syncPeriodInMinutes,
         syncFailureResetInMinutes: dependency?.syncFailureResetInMinutes,
         priority: dependency?.priority,
-        lastSyncedAt: existing?.lastSyncedAt || null,
+        lastSyncedAt: existing?.lastSyncedAt || 0,
         nextSyncAt:
           existing?.nextSyncAt ||
           convertDateToTimeStamp(
             new Date(Date.now() + dependency?.syncPeriodInMinutes * 60 * 1000),
           ),
         isSyncInProgress: false,
-        syncStartedAt: null,
+        syncStartedAt: convertDateToTimeStamp(new Date()),
       });
     }
   });
 };
 
-export const _syncDataForOffilneMode = async () => {
+export const _syncDataForOffilneMode = async userKey => {
   const connected = await isNetworkConnected();
   if (!connected) {
-    console.log('Sync cannot start in offline mode');
+    const foodQuantityUnitLastSync =
+      fetchSyncingDependencyByModuleName('FoodQuantityUnit')?.lastSyncedAt;
+    const foodCategoryLastSync =
+      fetchSyncingDependencyByModuleName('FoodCategory')?.lastSyncedAt;
+    const foodItemLastSync =
+      fetchSyncingDependencyByModuleName('FoodItem')?.lastSyncedAt;
+    addSyncingDependencyRecord({
+      moduleName: 'FoodQuantityUnit',
+      lastSyncedAt: foodQuantityUnitLastSync || 0,
+      isSyncInProgress: false,
+    });
+    addSyncingDependencyRecord({
+      moduleName: 'FoodCategory',
+      lastSyncedAt: foodCategoryLastSync || 0,
+      isSyncInProgress: false,
+    });
+    addSyncingDependencyRecord({
+      moduleName: 'FoodItem',
+      lastSyncedAt: foodItemLastSync || 0,
+      isSyncInProgress: false,
+    });
     return;
   }
 
-  const dependencies = fetchSyncingDependencies();
-  const sortedDependencies = dependencies.sort(
-    (a, b) => a.priority - b.priority,
-  );
-  for (const dependency of sortedDependencies) {
-    if (!dependency.isSyncInProgress) {
-      addSyncingDependencyRecord({
-        ...dependency,
-        isSyncInProgress: true,
-        syncStartedAt: convertDateToTimeStamp(new Date()),
-      });
+  // const dependencies = fetchSyncingDependencies();
+  // const sortedDependencies = dependencies.sort(
+  //   (a, b) => a.priority - b.priority,
+  // );
+  // for (const dependency of sortedDependencies) {
+  //   if (!dependency.isSyncInProgress) {
+  //     addSyncingDependencyRecord({
+  //       ...dependency,
+  //       isSyncInProgress: true,
+  //       syncStartedAt: convertDateToTimeStamp(new Date()),
+  //     });
 
-      try {
-        await syncModule(dependency.moduleName);
-        addSyncingDependencyRecord([
-          {
-            ...dependency,
-            lastSyncedAt: convertDateToTimeStamp(new Date()),
-            nextSyncAt: convertDateToTimeStamp(
-              new Date(Date.now() + dependency.syncPeriodInMinutes * 60 * 1000),
-            ),
-            isSyncInProgress: false,
-            syncStartedAt: null,
-          },
-        ]);
-      } catch (error) {
-        console.error(`Sync failed for ${dependency.moduleName}:`, error);
-        addSyncingDependencyRecord({
-          ...dependency,
-          isSyncInProgress: false,
-        });
-      }
-    }
-  }
+  //     try {
+  //       const syncDuration = dependency.syncPeriodInMinutes * 60 * 1000;
+  //       setTimeout(() => {
+  //         addSyncingDependencyRecord({
+  //           ...dependency,
+  //           lastSyncedAt: convertDateToTimeStamp(new Date()),
+  //           nextSyncAt: convertDateToTimeStamp(
+  //             new Date(dependency?.syncStartedAt + syncDuration),
+  //           ),
+  //           isSyncInProgress: false,
+  //           syncStartedAt: convertDateToTimeStamp(new Date()),
+  //         });
+  //       }, syncDuration);
+  //     } catch (error) {
+  //       console.error(`Sync failed for ${dependency.moduleName}:`, error);
+  //       addSyncingDependencyRecord({
+  //         ...dependency,
+  //         isSyncInProgress: false,
+  //       });
+  //     }
+  //   }
+  // }
 };

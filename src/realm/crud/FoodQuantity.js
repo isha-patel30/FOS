@@ -1,15 +1,49 @@
+import Realm from 'realm';
 import {realm} from '../RealmServices';
+
+const showLog = false;
 
 export const addFoodQuantityUnitRecords = records => {
   try {
     realm.write(() => {
       if (Array.isArray(records)) {
         records.forEach(record => {
-          realm.create('FoodQuantityUnit', Array.from(record));
+          const existingRecord = realm
+            .objects('FoodQuantityUnit')
+            .filtered(
+              `serverQuantityUnitId == "${record.serverQuantityUnitId}"`,
+            );
+          if (existingRecord.length === 0) {
+            const updatedRecord = {
+              ...record,
+              localFoodQuantityUnitId: new Realm.BSON.ObjectId(),
+            };
+            realm.create('FoodQuantityUnit', updatedRecord);
+          } else {
+            showLog &&
+              console.log(
+                `Record with serverQuantityUnitId ${record.serverQuantityUnitId} already exists`,
+              );
+          }
         });
       } else {
-        console.log('Food quantity unit record: ', records);
-        realm.create('FoodQuantityUnit', Array.from(records));
+        const existingRecord = realm
+          .objects('FoodQuantityUnit')
+          .filtered(
+            `serverQuantityUnitId == "${records.serverQuantityUnitId}"`,
+          );
+        if (existingRecord.length === 0) {
+          const updatedRecord = {
+            ...records,
+            localFoodQuantityUnitId: new Realm.BSON.ObjectId(),
+          };
+          realm.create('FoodQuantityUnit', updatedRecord);
+        } else {
+          showLog &&
+            console.log(
+              `Record with serverQuantityUnitId ${records.serverQuantityUnitId} already exists`,
+            );
+        }
       }
     });
   } catch (error) {
@@ -29,7 +63,7 @@ export const deleteFoodQuantityUnitRecords = primaryKeyValues => {
           if (recordToDelete) {
             realm.delete(recordToDelete);
           } else {
-            console.log('No record found for key');
+            showLog && console.log('No record found for key');
           }
         });
       } else {
@@ -40,12 +74,28 @@ export const deleteFoodQuantityUnitRecords = primaryKeyValues => {
         if (recordToDelete) {
           realm.delete(recordToDelete);
         } else {
-          console.log('No record to delete');
+          showLog && console.log('No record to delete');
         }
       }
     });
   } catch (error) {
     console.log('Error deleting Food quantity unit records', error);
+  }
+};
+
+export const deleteAllFoodQuantityUnitRecords = () => {
+  try {
+    realm.write(() => {
+      const records = realm.objects('FoodQuantityUnit');
+      if (records) {
+        realm.delete(records);
+        showLog && console.log('deleted all records');
+      } else {
+        showLog && console.log('No food quantity records to delete');
+      }
+    });
+  } catch (error) {
+    console.log('Error deleting all food quantity records:', error);
   }
 };
 
@@ -63,7 +113,7 @@ export const updateFoodQuantityUnitRecords = updates => {
               recordToUpdate[key] = updatedData[key];
             });
           } else {
-            console.log('No record to update');
+            showLog && console.log('No record to update');
           }
         });
       } else {
@@ -77,7 +127,7 @@ export const updateFoodQuantityUnitRecords = updates => {
             recordToUpdate[key] = updatedData[key];
           });
         } else {
-          console.log('No record to update');
+          showLog && console.log('No record to update');
         }
       }
     });
@@ -89,9 +139,47 @@ export const updateFoodQuantityUnitRecords = updates => {
 export const fetchFoodQuantiyUnits = () => {
   try {
     const foodQuanityUnits = realm.objects('FoodQuantityUnit');
-    console.log(foodQuanityUnits);
+    console.log('foodQuanityUnits:: ', foodQuanityUnits);
     return Array.from(foodQuanityUnits);
   } catch (error) {
     console.log('Error fetching food quantities', error);
+  }
+};
+
+export const deleteFoodQuantityUnitRecordsById = ids => {
+  try {
+    realm.write(() => {
+      if (Array.isArray(ids)) {
+        ids.forEach(id => {
+          const recordToDelete = realm
+            .objects('FoodQuantityUnit')
+            .filtered(`serverQuantityUnitId == "${id.toString()}"`)[0];
+          if (recordToDelete) {
+            realm.delete(recordToDelete);
+            showLog && console.log('record deleted');
+          } else {
+            showLog &&
+              console.log(
+                `No record found for serverQuantityUnitId id: "${id.toString()}"`,
+              );
+          }
+        });
+      } else {
+        const recordToDelete = realm
+          .objects('FoodQuantityUnit')
+          .filtered(`serverQuantityUnitId == "${ids.toString()}"`)[0];
+        if (recordToDelete) {
+          realm.delete(recordToDelete);
+          showLog && console.log('record deleted');
+        } else {
+          showLog &&
+            console.log(
+              `No record found for serverQuantityUnitId: ${ids.toString()}`,
+            );
+        }
+      }
+    });
+  } catch (error) {
+    console.log('Error deleting food quantity unit records', error);
   }
 };

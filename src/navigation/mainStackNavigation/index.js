@@ -1,8 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {CardStyleInterpolators} from '@react-navigation/stack';
-import NetInfo from '@react-native-community/netinfo';
 import DeviceInfo from 'react-native-device-info';
 
 import {
@@ -17,50 +15,53 @@ import {
 } from '../../services';
 import {
   deleteAllSyncingDependencyRecords,
-  deleteSyncingDependencyRecords,
   fetchSyncingDependencies,
+  realm,
 } from '../../realm';
+import {useMainContext} from '../../contexts';
 
 const Stack = createNativeStackNavigator();
 
 export const MainStackNavigation = () => {
   const deviceType = DeviceInfo.getDeviceType();
+  const {isConnected} = useMainContext();
 
   useEffect(() => {
     const initializeApp = async () => {
-      console.log('initialize app');
-      // _initializeSyncingDependencies();
+      _initializeSyncingDependencies();
       // await _syncDataForOffilneMode();
 
-      // NetInfo.addEventListener(async state => {
-      //   if (state.isConnected) {
-      //     await syncOfflineQueue();
-      //     await _syncDataForOffilneMode();
-      //   }
-      // });
-      deleteAllSyncingDependencyRecords();
+      if (isConnected) {
+        await syncOfflineQueue();
+        await _syncDataForOffilneMode();
+      }
+
+      // deleteAllSyncingDependencyRecords();
     };
 
     initializeApp();
-  }, []);
+  }, [isConnected]);
 
   return (
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
         }}>
         {/* <Stack.Screen name="demoScreen" component={DemoScreen} /> */}
         <Stack.Screen
           name="foodOrderListScreen"
           component={FoodOrderListScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
         />
         <Stack.Screen
           name="addFoodOrderScreen"
           component={AddFoodOrderScreen}
           options={{
             orientation: deviceType === 'Tablet' ? 'all' : 'landscape',
+            animation: 'slide_from_right',
           }}
         />
       </Stack.Navigator>

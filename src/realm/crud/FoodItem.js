@@ -1,14 +1,92 @@
+import Realm from 'realm';
 import {realm} from '../RealmServices';
+
+const showLog = true;
 
 export const addFoodItemRecords = records => {
   try {
     realm.write(() => {
+      const FoodCategory = realm.objects('FoodCategory');
+      const FoodQuantityUnit = realm.objects('FoodQuantityUnit');
+
+      if (!FoodCategory || !FoodQuantityUnit) {
+        throw new Error(
+          'FoodCategory or FoodQuantityUnit schema is not defined or loaded properly',
+        );
+      }
       if (Array.isArray(records)) {
         records.forEach(record => {
-          realm.create('FoodItem', record);
+          const existingRecord = realm
+            .objects('FoodItem')
+            .filtered(`serverItemId == "${record.serverItemId}"`);
+          if (existingRecord.length === 0) {
+            const foodCategory = FoodCategory.filtered(
+              `serverCategoryId == "${record.serverCategoryId}"`,
+            )[0];
+            const foodQuantityUnit = FoodQuantityUnit.filtered(
+              `serverQuantityUnitId == "${record.serverQuantityUnitId}"`,
+            )[0];
+
+            if (!foodCategory || !foodQuantityUnit) {
+              console.log(
+                'Missing related categories or units for this food item.',
+              );
+            }
+
+            const updatedRecord = {
+              ...record,
+              localItemId: new Realm.BSON.ObjectId(),
+              foodCategory: foodCategory
+                ? foodCategory.serverCategoryId
+                : record.serverCategoryId,
+              foodQuantityUnit: foodQuantityUnit
+                ? foodQuantityUnit.serverQuantityUnitId
+                : record.serverQuantityUnitId,
+              portionQuantity: parseInt(record.portionQuantity),
+            };
+            realm.create('FoodItem', updatedRecord);
+          } else {
+            showLog &&
+              console.log(
+                `Record with serverItemId ${record.serverItemId} already exists in foodItem`,
+              );
+          }
         });
       } else {
-        realm.create('FoodItem', records);
+        const existingRecord = realm
+          .objects('FoodItem')
+          .filtered(`serverItemId == "${records.serverItemId}"`);
+        if (existingRecord.length === 0) {
+          const foodCategory = FoodCategory.filtered(
+            `serverCategoryId == "${records.serverCategoryId}"`,
+          )[0];
+          const foodQuantityUnit = FoodQuantityUnit.filtered(
+            `serverQuantityUnitId == "${records.serverQuantityUnitId}"`,
+          )[0];
+
+          if (!foodCategory || !foodQuantityUnit) {
+            console.log(
+              'Missing related categories or units for this food item.',
+            );
+          }
+          const updatedRecord = {
+            ...records,
+            localItemId: new Realm.BSON.ObjectId(),
+            foodCategory: foodCategory
+              ? foodCategory.serverCategoryId
+              : records.serverCategoryId,
+            foodQuantityUnit: foodQuantityUnit
+              ? foodQuantityUnit.serverQuantityUnitId
+              : records.serverQuantityUnitId,
+            portionQuantity: parseInt(records.portionQuantity),
+          };
+          realm.create('FoodItem', updatedRecord);
+        } else {
+          showLog &&
+            console.log(
+              `Record with serverItemId ${records.serverItemId} already exists in foodItems`,
+            );
+        }
       }
     });
   } catch (error) {
@@ -85,9 +163,25 @@ export const updateFoodItemRecords = updatedRecords => {
 export const fetchFoodItems = () => {
   try {
     const foodItems = realm.objects('FoodItem');
-    console.log('foodItems in realm/crud: ', Array.from(foodItems));
+    console.log('foodItems in realm/crud: ', foodItems);
     return Array.from(foodItems);
   } catch (error) {
     console.log('Error fetching food items', error);
+  }
+};
+
+export const deleteAllFoodItemsRecords = () => {
+  try {
+    realm.write(() => {
+      const records = realm.objects('FoodItem');
+      if (records) {
+        realm.delete(records);
+        showLog && console.log('deleted all records');
+      } else {
+        showLog && console.log('No food quantity records to delete');
+      }
+    });
+  } catch (error) {
+    console.log('Error deleting all food quantity records:', error);
   }
 };

@@ -1,7 +1,7 @@
 import {BASE_URL} from '../../config';
 import axios from 'axios';
 
-const showLog = true;
+const showLog = false;
 
 function _post(url, headers, data) {
   const options = {
