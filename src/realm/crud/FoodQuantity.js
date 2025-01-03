@@ -139,7 +139,6 @@ export const updateFoodQuantityUnitRecords = updates => {
 export const fetchFoodQuantiyUnits = () => {
   try {
     const foodQuanityUnits = realm.objects('FoodQuantityUnit');
-    console.log('foodQuanityUnits:: ', foodQuanityUnits);
     return Array.from(foodQuanityUnits);
   } catch (error) {
     console.log('Error fetching food quantities', error);

@@ -1,0 +1,22 @@
+export const FoodOrderSchema = {
+  name: 'FoodOrder',
+  properties: {
+    localFoodOrderId: 'objectId?',
+    serverFoodOrderId: 'string?',
+    foodOrderId: 'int?',
+    facility: 'string?',
+    foodOrderType: 'string?',
+    foodOrderStatus: 'string?',
+    totalRequestedPortionCount: 'int?',
+    totalOrderedPortionCount: 'int?',
+    isRejected: 'bool?',
+    rejectionReason: 'string?',
+    isCancelled: 'bool?',
+    cancellationReason: 'string?',
+    isSyncPending: 'bool?',
+    lastSyncedAt: 'date?',
+    isSyncInProgress: 'bool?',
+    syncStartedAt: 'date?',
+  },
+  primaryKey: 'localFoodOrderId',
+};

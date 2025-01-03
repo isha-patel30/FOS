@@ -116,8 +116,23 @@ export const updateFoodCategoryRecords = updates => {
 export const fetchFoodCategories = () => {
   try {
     const foodCategories = realm.objects('FoodCategory');
-    console.log('foodCategories in realm/crud: ', foodCategories);
+    showLog && console.log('foodCategories in realm/crud: ', foodCategories);
     return Array.from(foodCategories);
+  } catch (error) {
+    console.log('Error fetching food categories', error);
+  }
+};
+export const deleteAllFoodCategories = () => {
+  try {
+    realm.write(() => {
+      const records = realm.objects('FoodCategory');
+      if (records) {
+        realm.delete(records);
+        showLog && console.log('deleted all records');
+      } else {
+        showLog && console.log('No food quantity records to delete');
+      }
+    });
   } catch (error) {
     console.log('Error fetching food categories', error);
   }

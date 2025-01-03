@@ -39,7 +39,6 @@ export const MainContextProvider = props => {
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      console.log('isConnetecd: ', state.isConnected);
       setIsConnected(state.isConnected);
     });
 

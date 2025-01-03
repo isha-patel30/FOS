@@ -12,8 +12,9 @@ import {
   fetchSyncingDependencies,
   fetchSyncingDependencyByModuleName,
 } from '../../realm';
+import * as data from '../../json';
 
-const userKey = '866b102764982f2cc13da3860c2beb243decf6e132abf9b24432bfd2ef';
+// const userKey = '866b102764982f2cc13da3860c2beb243decf6e132abf9b24432bfd2ef';
 
 /**
  * FoodQuantityUnit Calls
@@ -146,31 +147,50 @@ export const _foodItemDetail = async (userKey, id) => {
 };
 
 /**
+ * Facility Calls
+ */
+
+// facility sync call
+export const _facilitySync = async userKey => {
+  let {_api_calls} = HttpCalls;
+
+  let params = {
+    apikey: API_KEY,
+    type: 'application/json',
+    reqFrom: 'supnl',
+    suKey: userKey,
+    tzstr: 'Europe/London',
+  };
+
+  let headers = await headersData(params);
+  return _api_calls('POST', '/appFoodFacilities/performSync', headers, {});
+};
+
+/**
+ * Food orders calls
+ */
+// food order save call
+export const _foodOrderSaveRequest = async (userKey, data) => {
+  let {_api_calls} = HttpCalls;
+
+  let params = {
+    apikey: API_KEY,
+    type: 'application/json',
+    reqFrom: 'supnl',
+    suKey: userKey,
+    tzstr: 'Europe/London',
+  };
+
+  let headers = await headersData(params);
+  return _api_calls('POST', '/appFoodOrders/saveRequest', headers, data);
+};
+
+/**
  * Syncing Dependencies
  */
 
 export const _initializeSyncingDependencies = () => {
-  const dependencies = [
-    {
-      moduleName: 'FoodQuantityUnit',
-      syncPeriodInMinutes: 2,
-      syncFailureResetInMinutes: 4,
-      priority: 1,
-    },
-    {
-      moduleName: 'FoodCategory',
-      syncPeriodInMinutes: 2,
-      syncFailureResetInMinutes: 4,
-      priority: 1,
-    },
-    {
-      moduleName: 'FoodItem',
-      syncPeriodInMinutes: 5,
-      syncFailureResetInMinutes: 8,
-      priority: 2,
-    },
-  ];
-
+  const dependencies = data?.modlesToBeSync;
   dependencies.forEach(dependency => {
     const existing = fetchSyncingDependencyByModuleName(dependency?.moduleName);
     const lastSyncedAt = existing?.lastSyncedAt || 0;
@@ -235,38 +255,101 @@ export const _syncDataForOffilneMode = async userKey => {
     return;
   }
 
-  // const dependencies = fetchSyncingDependencies();
-  // const sortedDependencies = dependencies.sort(
-  //   (a, b) => a.priority - b.priority,
-  // );
-  // for (const dependency of sortedDependencies) {
-  //   if (!dependency.isSyncInProgress) {
-  //     addSyncingDependencyRecord({
-  //       ...dependency,
-  //       isSyncInProgress: true,
-  //       syncStartedAt: convertDateToTimeStamp(new Date()),
-  //     });
+  const dependencies = fetchSyncingDependencies();
+  const sortedDependencies = dependencies.sort(
+    (a, b) => a.priority - b.priority,
+  );
+  for (const dependency of sortedDependencies) {
+    if (!dependency.isSyncInProgress) {
+      addSyncingDependencyRecord({
+        ...dependency,
+        isSyncInProgress: true,
+        syncStartedAt: convertDateToTimeStamp(new Date()),
+      });
 
-  //     try {
-  //       const syncDuration = dependency.syncPeriodInMinutes * 60 * 1000;
-  //       setTimeout(() => {
-  //         addSyncingDependencyRecord({
-  //           ...dependency,
-  //           lastSyncedAt: convertDateToTimeStamp(new Date()),
-  //           nextSyncAt: convertDateToTimeStamp(
-  //             new Date(dependency?.syncStartedAt + syncDuration),
-  //           ),
-  //           isSyncInProgress: false,
-  //           syncStartedAt: convertDateToTimeStamp(new Date()),
-  //         });
-  //       }, syncDuration);
-  //     } catch (error) {
-  //       console.error(`Sync failed for ${dependency.moduleName}:`, error);
-  //       addSyncingDependencyRecord({
-  //         ...dependency,
-  //         isSyncInProgress: false,
-  //       });
-  //     }
-  //   }
-  // }
+      try {
+        const syncDuration = dependency.syncPeriodInMinutes * 60 * 1000;
+        setTimeout(() => {
+          addSyncingDependencyRecord({
+            ...dependency,
+            lastSyncedAt: convertDateToTimeStamp(new Date()),
+            nextSyncAt: convertDateToTimeStamp(
+              new Date(dependency?.syncStartedAt + syncDuration),
+            ),
+            isSyncInProgress: false,
+            syncStartedAt: convertDateToTimeStamp(new Date()),
+          });
+        }, syncDuration);
+      } catch (error) {
+        console.error(`Sync failed for ${dependency.moduleName}:`, error);
+        addSyncingDependencyRecord({
+          ...dependency,
+          isSyncInProgress: false,
+        });
+      }
+    }
+  }
+};
+
+const _syncModuleWhenAppInstalled = async module => {
+  const currentTime = convertDateToTimeStamp(new Date());
+  if (module?.isSyncInProgress) {
+    console.log(`${module.moduleName} is syncying`);
+    return;
+  }
+
+  if (currentTime < module.nextSyncAt) {
+    const waitTime = module.nextSyncAt - currentTime;
+    console.log(
+      `Waiting for ${waitTime / 1000} seconds to sync module: ${
+        module.moduleName
+      }`,
+    );
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+
+  try {
+    console.log(`Started syncing ${module.moduleName}`);
+    module.isSyncInProgress = true;
+    module.syncStartedAt = convertDateToTimeStamp(new Date());
+    const syncDuration = module.syncPeriodInMinutes * 60 * 1000;
+    const syncStart = convertDateToTimeStamp(new Date());
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    const elapsedTime = convertDateToTimeStamp(new Date()) - syncStart;
+    if (elapsedTime < syncDuration) {
+      const remainingTime = syncDuration - elapsedTime;
+      console.log(
+        `Ensuring sync duration for module: ${module.moduleName}. Waiting for ${
+          remainingTime / 1000
+        } seconds.`,
+      );
+      module.isSyncInProgress = false;
+      // await new Promise(resolve => setTimeout(resolve, remainingTime));
+    }
+    module.lastSyncedAt = convertDateToTimeStamp(new Date());
+    module.nextSyncAt =
+      module.syncStartedAt + module.syncPeriodInMinutes * 60 * 1000;
+
+    console.log(`Sync completed for module: ${module.moduleName}`);
+    console.log('module: ', module);
+  } catch (error) {
+    console.error(`Sync failed for module: ${module.moduleName}`, error);
+    module.nextSyncAt =
+      convertDateToTimeStamp(new Date()) +
+      module.syncFailureResetInMinutes * 60 * 1000;
+    module.isSyncInProgress = false;
+  }
+};
+
+export const _syncAllModulesWhenAppIsInstalled = async () => {
+  console.log('Starting sync for all modules...');
+  const sortedModules = data?.modlesToBeSync.sort(
+    (a, b) => a.priority - b.priority,
+  );
+
+  for (const module of sortedModules) {
+    await _syncModuleWhenAppInstalled(module);
+  }
+
+  console.log('Sync completed for all modules.');
 };

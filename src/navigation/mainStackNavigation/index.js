@@ -4,17 +4,25 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import DeviceInfo from 'react-native-device-info';
 
 import {
+  AddEditFoodOrderScreen,
   AddFoodOrderScreen,
   DemoScreen,
   FoodOrderListScreen,
 } from '../../screens';
 import {
   _initializeSyncingDependencies,
+  _syncAllModulesWhenAppIsInstalled,
   _syncDataForOffilneMode,
   syncOfflineQueue,
 } from '../../services';
 import {
+  deleteAllFacilityRecords,
+  deleteAllFoodCategories,
+  deleteAllFoodItemsRecords,
+  deleteAllFoodQuantityUnitRecords,
   deleteAllSyncingDependencyRecords,
+  deleteFoodCategoryRecords,
+  fetchFoodQuantiyUnits,
   fetchSyncingDependencies,
   realm,
 } from '../../realm';
@@ -28,15 +36,7 @@ export const MainStackNavigation = () => {
 
   useEffect(() => {
     const initializeApp = async () => {
-      _initializeSyncingDependencies();
-      // await _syncDataForOffilneMode();
-
-      if (isConnected) {
-        await syncOfflineQueue();
-        await _syncDataForOffilneMode();
-      }
-
-      // deleteAllSyncingDependencyRecords();
+      // _syncAllModulesWhenAppIsInstalled();
     };
 
     initializeApp();
@@ -59,6 +59,14 @@ export const MainStackNavigation = () => {
         <Stack.Screen
           name="addFoodOrderScreen"
           component={AddFoodOrderScreen}
+          options={{
+            orientation: deviceType === 'Tablet' ? 'all' : 'landscape',
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="addEditFoodOrderScreen"
+          component={AddEditFoodOrderScreen}
           options={{
             orientation: deviceType === 'Tablet' ? 'all' : 'landscape',
             animation: 'slide_from_right',

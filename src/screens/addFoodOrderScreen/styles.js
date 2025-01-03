@@ -190,7 +190,7 @@ export const quantityText = () => ({
 export const totalQuantityView = () => ({
   flex: 1,
   justifyContent: 'center',
-  alignItems: 'center',
+  alignItems: 'flex-end',
   borderRightWidth: size.moderateScale(1),
   borderRightColor: color.borderColor,
   paddingVertical: size.moderateScale(10),
@@ -201,7 +201,7 @@ export const totalPortionView = () => ({
   flex: 0.5,
   flexDirection: 'row',
   alignItems: 'center',
-  justifyContent: 'flex-end',
+  justifyContent: 'flex-start',
   paddingVertical: size.moderateScale(10),
   gap: size.moderateScale(10),
 });
@@ -217,5 +217,5 @@ export const tableBottomText = () => ({
   fontSize: fontSize.littleMedium,
   fontFamily: fonts.latoBlack,
   color: color.mostlyBlack,
-  paddingRight: size.moderateScale(10),
+  paddingHorizontal: size.moderateScale(10),
 });
