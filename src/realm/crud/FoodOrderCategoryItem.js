@@ -5,13 +5,12 @@ const showLog = true;
 
 export const addFoodOrderCategoryItem = records => {
   try {
+    const recordsArray = Array.isArray(records) ? records : [records];
     realm.write(() => {
-      records.forEach(record => {
+      recordsArray.forEach(record => {
         const existingRecord = realm
           .objects('FoodOrderCategoryItem')
-          .filtered(
-            `localFoodOrderCategoryItemId = "${record.localFoodOrderCategoryItemId}"`,
-          )[0];
+          .filtered(`foodOrder = "${record.foodOrder}"`)[0];
         if (!existingRecord) {
           const updateRecord = {
             ...record,
@@ -86,7 +85,7 @@ export const deleteFoodOrderCategory = primaryKey => {
   }
 };
 
-export const fetchAllFoodOrderCategories = () => {
+export const fetchAllFoodOrderCategoryItems = () => {
   try {
     const foodOrderCategorieItems = realm.objects('FoodOrderCategoryItem');
     return foodOrderCategorieItems;

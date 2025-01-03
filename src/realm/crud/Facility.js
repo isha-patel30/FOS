@@ -9,13 +9,16 @@ export const addFacilityRecords = records => {
       records.forEach(record => {
         const existingRecord = realm
           .objects('Facility')
-          .filtered(`facilityKey == "${record.facilityKey}"`);
+          .filtered(`serverFacilityId == "${record.serverFacilityId}"`);
         if (existingRecord.length === 0) {
           const updatedRecord = {
             ...record,
             localFacilityId: new Realm.BSON.ObjectId(),
           };
           realm.create('Facility', updatedRecord);
+          console.log(
+            `Facility with id ${updatedRecord.serverFacilityId} created`,
+          );
         } else {
           showLog &&
             console.log(

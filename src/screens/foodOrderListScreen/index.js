@@ -3,6 +3,7 @@ import {View, Text, TouchableOpacity, ToastAndroid} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import {
+  addFacilityRecords,
   addFoodCategoryRecords,
   addFoodItemRecords,
   addFoodOrderStatus,
@@ -26,33 +27,6 @@ import {
 export const FoodOrderListScreen = () => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
-
-  const initializeFoodOrderType = async () => {
-    setLoading(true);
-    try {
-      await addFoodOrderType(data?.foodOrderType);
-    } catch (error) {
-      console.log('Error initializing food order type: ', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const initializeFoodSubOrderStatus = async () => {
-    setLoading(true);
-    try {
-      await addFoodSubOrderStatus(data?.foodSubOrderStatus);
-    } catch (error) {
-      console.log('Error initializing food sub order status: ', error);
-    }
-  };
-  const initializeFoodOrderStatus = async () => {
-    setLoading(true);
-    try {
-      await addFoodOrderStatus(data?.foodOrderStatus);
-    } catch (error) {
-      console.log('Error initializing food sub order status: ', error);
-    }
-  };
 
   const handleRefreshCategory = async () => {
     setLoading(true);
@@ -121,16 +95,52 @@ export const FoodOrderListScreen = () => {
         '866b102764982f2cc13da3860c2beb243decf6e132abf9b24432bfd2ef',
       );
       if (facilityResponse.status === 1) {
-        console.log(
-          'facilityResponse: ',
-          facilityResponse?.accessibleFacilities,
-        );
+        addFacilityRecords(facilityResponse?.accessibleFacilities);
       }
     } catch (error) {
+      console.log(
+        'Errror adding facility records: in performFacilitySync ',
+        error,
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  const performFoodOrderStatusSync = async () => {
+    setLoading(true);
+    try {
+      const foodOrderStatus = data?.foodOrderStatus;
+      if (foodOrderStatus.length > 0) {
+        addFoodOrderStatus(foodOrderStatus);
+        console.log('Food order status: ', foodOrderStatus);
+      }
+    } catch (error) {
+      console.log('Error performing food order status sync: ', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const performFoodOrderTypeSync = async () => {
+    setLoading(true);
+    try {
+      const foodOrderType = data?.foodOrderType;
+      if (foodOrderType.length > 0) {
+        addFoodOrderType(foodOrderType);
+        console.log('Food order status: ', foodOrderType);
+      }
+    } catch (error) {
+      console.log('Error performing food order status sync: ', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // performFoodOrderStatusSync();
+    // performFoodOrderTypeSync();
+  }, []);
 
   return (
     <Screen>

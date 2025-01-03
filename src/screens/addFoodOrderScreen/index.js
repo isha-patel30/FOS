@@ -3,6 +3,7 @@ import {
   RefreshControl,
   ScrollView,
   Text,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -16,16 +17,19 @@ import {
   _foodQuantityUnitSync,
 } from '../../services';
 import {
-  addFoodCategoryRecords,
-  addFoodItemRecords,
-  addFoodQuantityUnitRecords,
-  deleteAllFoodItemsRecords,
-  deleteFoodQuantityUnitRecordsById,
   fetchFoodCategories,
   fetchFoodItems,
   fetchFoodQuantiyUnits,
   fetchFoodOrderType,
   fetchFoodItemsByCategoryId,
+  fetchFaciltyRecords,
+  fetchFoodOrderStatus,
+  fetchAllFoodOrders,
+  addFoodOrder,
+  deleteAllFoodOrders,
+  fetchAllFoodOrderCategory,
+  addFoodOrderCategory,
+  addFoodOrderCategoryItem,
 } from '../../realm';
 import {
   color,
@@ -41,6 +45,7 @@ import {
 import {useMainContext} from '../../contexts';
 import {Header, Loader, Screen} from '../../components';
 import * as styles from './styles';
+import {index} from 'realm';
 
 export const AddFoodOrderScreen = () => {
   const navigation = useNavigation();
@@ -54,10 +59,11 @@ export const AddFoodOrderScreen = () => {
   const [foodQuantityUnits, setFoodQuantityUnits] = useState([]);
   const [foodCategories, setFoodCategories] = useState([]);
   const [foodItems, setFoodItems] = useState([]);
+  const [facilities, setFacilities] = useState([]);
   const [foodOrderType, setFoodOrderType] = useState([]);
-  const [checkedItems, setCheckedItems] = useState(new Set());
-  const [selectedFoodCategory, setSelectedFoodCategory] = useState([]);
-  const [foodItemQuantities, setFoodItemQuantities] = useState({});
+  const [foodOrderStatus, setFoodOrderStatus] = useState([]);
+  const [foodOrders, setFoodOrders] = useState([]);
+  const [foodOrderCategories, setFoodOrderCategories] = useState([]);
   const [foodCategoryItemsWithFoodItems, setFoodCategoryItemsWithFoodItems] =
     useState({
       orderCategories: [],
@@ -118,138 +124,143 @@ export const AddFoodOrderScreen = () => {
     }
   };
 
-  const toggleCheckbox = (catIndex, foodIndex) => {
-    const foodItem =
-      showFoodCategoryItemTableData[catIndex]?.foodItems[foodIndex];
-    console.log('foodItem pressed: ', foodItem);
-    setCheckedItems(prevCheckedItems => {
-      const newCheckedItems = new Set(prevCheckedItems);
-      if (newCheckedItems.has(foodItem.localItemId)) {
-        newCheckedItems.delete(foodItem.localItemId);
-      } else {
-        newCheckedItems.add(foodItem.localItemId);
+  const fetchFacilityDataFromLocal = async () => {
+    setLoading(true);
+    try {
+      const facilities = await fetchFaciltyRecords();
+      if (facilities.length > 0) {
+        setFacilities(facilities);
       }
-      console.log('newCheckedItems: ', newCheckedItems);
-      //   setFoodItemQuantities(prevFoodItemQuantities => {
-      //     const updatedQuantities = {...prevFoodItemQuantities};
+    } catch (error) {
+      console.log('Error fetching facility data: ', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      //     if (newCheckedItems.has(foodItem.localItemId)) {
-      //   newCheckedItems.delete(foodItem.localItemId);
-      // } else {
-      //   newCheckedItems.add(foodItem.localItemId);
-      // }
+  const fetchFoodOrderStatusDataFromLocal = async () => {
+    setLoading(true);
+    try {
+      const foodOrderStatus = await fetchFoodOrderStatus();
+      if (foodOrderStatus.length > 0) {
+        setFoodOrderStatus(foodOrderStatus);
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      //     return updatedQuantities;
-      //   });
+  const fetchFoodOrderFromLocal = async () => {
+    setLoading(true);
+    try {
+      const foodOrders = fetchAllFoodOrders();
+      if (foodOrders.length > 0) {
+        setFoodOrders(foodOrders);
+      }
+    } catch (error) {
+      console.log('error fetching food orders: ', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // if (foodItem && newCheckedItems.has(foodItem.localItemId)) {
-      //   newCheckedItems.delete(foodItem.localItemId);
-      //   setFoodItemQuantities(prevFoodItemQuantities => {
-      //     const updatedQuantities = {...prevFoodItemQuantities};
-      //     delete updatedQuantities[foodItem.localItemId];
-      //     return updatedQuantities;
-      //   });
-      // } else if (foodItem) {
-      //   newCheckedItems.add(foodItem.localItemId);
-      //   setFoodItemQuantities(prevFoodItemQuantities => {
-      //     const updatedQuantities = {...prevFoodItemQuantities};
-      //     updatedQuantities[foodItem.localItemId] = 1; // Set initial quantity to 1
-      //     return updatedQuantities;
-      //   });
-      // }
-      return newCheckedItems;
+  const fetchFoodOrderCategoryFromLocal = async () => {
+    try {
+      const foodOrderCategories = await fetchAllFoodOrderCategory();
+      if (foodOrderCategories.length > 0) {
+        setFoodOrderCategories(foodOrderCategories);
+      }
+    } catch (error) {
+      console.log('first');
+    }
+  };
+
+  const toggleCheckbox = (catIndex, foodIndex) => {
+    setShowFoodCategoryItemTableData(prevState => {
+      const updatedState = [...prevState]; // Create a shallow copy of the state
+      const category = {...updatedState[catIndex]}; // Copy the category
+      const foodItem = {...category.foodItems[foodIndex]}; // Copy the food item
+      console.log('foodItem: ', foodItem);
+      if (foodItem.isItemSelected) {
+        foodItem.isItemSelected = false;
+        foodItem.requestedItemPortionCount = 0;
+        foodItem.requestedPortionQuantityString = '';
+      } else {
+        foodItem.isItemSelected = true;
+        if (foodItem.requestedItemPortionCount === 0) {
+          foodItem.requestedItemPortionCount = 1;
+          const portionCount =
+            foodItem.requestedItemPortionCount * foodItem.portionQuantity;
+          foodItem.requestedPortionQuantityString = `${foodItem.requestedItemPortionCount} portion(s) of ${foodItem.itemName} is ${portionCount} ${foodItem.quantityUnitName}(s)`;
+        }
+      }
+
+      category.foodItems[foodIndex] = foodItem;
+      updatedState[catIndex] = category;
+      return updatedState;
     });
   };
 
-  const updatedSelectedCategories = newCheckedItems => {
-    const updatedSelectedCategoryIds = foodCategories
-      .filter(category => {
-        return foodItems.some(
-          item =>
-            item.serverCategoryId == category.serverCategoryId &&
-            newCheckedItems.has(item.serverItemId),
-        );
-      })
-      .map(category => category.serverCategoryId);
-    setSelectedFoodCategory(updatedSelectedCategoryIds);
-  };
-
   const handleIncrementFoodItem = (catIndex, foodIndex) => {
-    const category = showFoodCategoryItemTableData[catIndex];
-    const foodItem = category.foodItems[foodIndex];
+    setShowFoodCategoryItemTableData(prevState => {
+      const updatedState = [...prevState];
+      const category = {...updatedState[catIndex]};
+      const foodItem = {...category.foodItems[foodIndex]};
 
-    const currFoodItemQty = foodItem.requestedPortionCount;
-    const updFoodItemQty = currFoodItemQty + 1;
+      const currFoodItemQty = foodItem?.requestedItemPortionCount || 0;
+      const updFoodItemQty = currFoodItemQty + 1;
 
-    if (updFoodItemQty <= 10) {
-      //store 10 to config
-      foodItem.requestedPortionCount = updFoodItemQty;
+      if (updFoodItemQty <= 10) {
+        foodItem.requestedItemPortionCount = updFoodItemQty;
+        foodItem.isItemSelected = true;
+        const portionCount = updFoodItemQty * foodItem.portionQuantity;
+        foodItem.requestedPortionQuantityString = `${updFoodItemQty} portion(s) of ${foodItem.itemName} is ${portionCount} ${foodItem.quantityUnitName}`;
+      }
 
-      var foodItemIsItemSelected = updFoodItemQty > 0 ? true : false;
-      foodItem.isItemSelected = foodItemIsItemSelected;
-      foodItem.requestedPortionQuantityString = updFoodItemQty + ' Portions';
-
-      //call recalculate function here and set in setShow... the string which needs to be generate
-      // recalculate();
-    }
-
-    setFoodItemQuantities(prevQuantities => {
-      const updatedQuantities = {...prevQuantities};
-      const currentQuantity = updatedQuantities[foodItem.localItemId] || 0;
-      updatedQuantities[foodItem.localItemId] = currentQuantity + 1;
-      setCheckedItems(prevCheckedItems => {
-        const newCheckedItems = new Set(prevCheckedItems);
-        if (!newCheckedItems.has(foodItem?.localItemId)) {
-          newCheckedItems.add(foodItem.localItemId);
-        }
-        return newCheckedItems;
-      });
-      return updatedQuantities;
+      category.foodItems[foodIndex] = foodItem;
+      updatedState[catIndex] = category;
+      return updatedState;
     });
   };
 
   const handleDecrementFoodItem = (catIndex, foodIndex) => {
-    const category = showFoodCategoryItemTableData[catIndex];
-    const foodItem = category.foodItems[foodIndex];
-    setFoodItemQuantities(prevQuantities => {
-      const updatedQuantities = {...prevQuantities};
-      const currentQuantity = updatedQuantities[foodItem.localItemId] || 0;
+    setShowFoodCategoryItemTableData(prevState => {
+      const updatedState = [...prevState];
+      const category = {...updatedState[catIndex]};
+      const foodItem = {...category.foodItems[foodIndex]};
 
-      if (currentQuantity > 0) {
-        updatedQuantities[foodItem.localItemId] = currentQuantity - 1;
-      }
-      if (updatedQuantities[foodItem.localItemId] < 1) {
-        setCheckedItems(prevCheckedItems => {
-          const newCheckedItems = new Set(prevCheckedItems);
-          newCheckedItems.delete(foodItem.localItemId);
-          return newCheckedItems;
-        });
+      const currFoodItemQty = foodItem.requestedItemPortionCount || 0;
+      const updFoodItemQty = currFoodItemQty - 1;
+
+      if (updFoodItemQty >= 0) {
+        foodItem.requestedItemPortionCount = updFoodItemQty;
+        foodItem.isItemSelected = updFoodItemQty > 0;
+
+        if (updFoodItemQty === 0) {
+          foodItem.requestedPortionQuantityString = '';
+        } else {
+          const portionCount = updFoodItemQty * foodItem.portionQuantity;
+
+          foodItem.requestedPortionQuantityString = `${updFoodItemQty} portion(s) of ${foodItem.itemName} is ${portionCount} ${foodItem.quantityUnitName}`;
+        }
       }
 
-      return updatedQuantities;
+      category.foodItems[foodIndex] = foodItem; // Update the food item in the category
+      updatedState[catIndex] = category; // Update the category in the state
+      return updatedState;
     });
-    // setFoodItemQuantities(prevFoodItemQuantity => {
-    //   const currentQuantity = prevFoodItemQuantity[itemId] || 0;
-    //   const newQuantity = Math.max(currentQuantity - 1, 0);
-    //   if (newQuantity == 0) {
-    //     setCheckedItems(prevCheckedItems => {
-    //       const newCheckedItems = new Set(prevCheckedItems);
-    //       newCheckedItems.delete(itemId);
-    //       return newCheckedItems;
-    //     });
-    //   }
-    //   return {
-    //     ...prevFoodItemQuantity,
-    //     [itemId]: newQuantity,
-    //   };
-    // });
   };
 
   const calculateCategoryTotalPortions = catIndex => {
     const category = showFoodCategoryItemTableData[catIndex];
     const totalPortions = category.foodItems.reduce((total, foodItem) => {
-      return total + (foodItemQuantities[foodItem?.localItemId] || 0);
+      return total + foodItem?.requestedItemPortionCount;
     }, 0);
+    if (category.totalRequestedPortionCount === undefined) {
+      category.totalRequestedPortionCount = 0;
+    }
+    category.totalRequestedPortionCount = totalPortions;
     return totalPortions;
   };
 
@@ -260,8 +271,18 @@ export const AddFoodOrderScreen = () => {
           item => item.foodCategory === category.localCategoryId.toString(),
         );
         itemsInCategory.forEach(item => {
+          const foodQuantityUnit = foodQuantityUnits.find(unitDetail => {
+            return (
+              unitDetail?.localFoodQuantityUnitId.toString() ===
+              item?.foodQuantityUnit.toString()
+            );
+          });
+          item.isItemSelected = false;
+          item.requestedItemPortionCount = 0;
           item.requestedPortionQuantityString = '';
+          item.quantityUnitName = foodQuantityUnit?.unitName;
         });
+
         if (itemsInCategory.length > 0) {
           return {
             ...category,
@@ -278,9 +299,7 @@ export const AddFoodOrderScreen = () => {
     return showFoodCategoryItemTableData.reduce((total, category) => {
       const categoryTotal = category.foodItems.reduce(
         (categoryTotal, foodItem) => {
-          return (
-            categoryTotal + (foodItemQuantities[foodItem?.localItemId] || 0)
-          );
+          return categoryTotal + (foodItem?.requestedItemPortionCount || 0);
         },
         0,
       );
@@ -288,73 +307,88 @@ export const AddFoodOrderScreen = () => {
     }, 0);
   };
 
-  const handleAddEditOrderPress = async () => {
-    console.log('selected categories: ', selectedFoodCategory);
-    console.log('selected food items: ', checkedItems);
-    console.log('food order type: ', selectedFoodOrderType?.typeCode);
-
-    // const saveFoodOrderData = {
-    //   serverOrderId: '',
-    //   serverFoodOrderTypeCode: selectedFoodOrderType?.typeCode,
-    //   serverFoodOrderStatusCode: '',
-    //   totalRequestedPortionCount: totalRequestedPortionCount,
-    //   orderCategories: [
-    //     {
-    //       serverFoodOrderCategoryId: '',
-    //       displayOrder: '',
-    //       serverFoodCategoryId: '',
-    //       totalRequestedPortionCount: 0,
-    //       orderCategoryItems: [
-    //         {
-    //           serverOrderCategoryItemId: '',
-    //           displayOrder: '',
-    //           serverFoodItemId: '',
-    //           requestedItemPortionCount: 0,
-    //         },
-    //       ],
-    //     },
-    //   ],
-    // };
-    // setLoading(true);
-    // try {
-    //   const response = await _foodOrderSaveRequest(
-    //     '866b102764982f2cc13da3860c2beb243decf6e132abf9b24432bfd2ef',
-    //     saveFoodOrderData,
-    //   );
-    //   console.log('response for save food order', response);
-    // } catch (error) {
-    //   console.log('Error adding/editing food order:', error);
-    // }
+  const saveFoodOrderLocally = async () => {
+    const selectedFoodOrderStatus = foodOrderStatus.filter(
+      orderStatus => orderStatus.statusCode == 'DRFT',
+    );
+    const saveLocalFoodOrder = {
+      serverFoodOrderId: '',
+      foodOrderId: 0,
+      facility: facilities[0].localFacilityId.toString(),
+      foodOrderType: selectedFoodOrderType?.typeCode,
+      foodOrderStatus: selectedFoodOrderStatus[0].statusCode,
+      totalRequestedPortionCount: calculateTotalSelectedQuanity(),
+      totalOrderedPortionCount: 0,
+      isRejected: false,
+      rejectionReason: '',
+      isCancelled: false,
+      cancellationReason: '',
+      isSyncPending: true,
+      lastSyncedAt: new Date(),
+      isSyncInProgress: false,
+      syncStartedAt: new Date(),
+    };
+    setLoading(true);
+    try {
+      if (calculateTotalSelectedQuanity() > 0) {
+        addFoodOrder(saveLocalFoodOrder);
+        if (foodOrders.length > 0) {
+          foodOrders.forEach(order => {
+            showFoodCategoryItemTableData
+              .filter(category => category.totalRequestedPortionCount > 0)
+              .map((filteredCategory, filterCatIndex) => {
+                console.log('filteredCategory: ', filteredCategory);
+                const saveLocalFoodOrderCategory = {
+                  foodOrder: order.localFoodOrderId.toString(),
+                  displayOrder: filterCatIndex + 1,
+                  foodCategory: filteredCategory.localCategoryId.toString(),
+                  totalRequestedPortionCount:
+                    filteredCategory.totalRequestedPortionCount,
+                  totalOrderedPortionCount: 0,
+                };
+                addFoodOrderCategory(saveLocalFoodOrderCategory);
+                const filteredFoodItems = filteredCategory.foodItems.filter(
+                  filteredFoodItem =>
+                    filteredFoodItem.requestedItemPortionCount > 0,
+                );
+                filteredFoodItems.map((filteredItem, filteredItemIndex) => {
+                  console.log('filteredItem: ', filteredItem);
+                  const saveFoodOrderCategoryItemLocally = {
+                    foodOrder: order.localFoodOrderId.toString(),
+                    foodOrderCategory:
+                      filteredCategory.localCategoryId.toString(),
+                    displayOrder: filteredItemIndex + 1,
+                    foodItem: filteredItem.localItemId.toString(),
+                    requestedItemPortionCount:
+                      filteredItem.requestedItemPortionCount,
+                    isRequestAccepted: false,
+                    orderedItemPortionCount: 0,
+                    orderFromSupplier: 0,
+                    orderedItemPortionQuantity: 0,
+                    orderedItemQuantityUnit: filteredItem.quantityUnitName,
+                  };
+                  addFoodOrderCategoryItem(saveFoodOrderCategoryItemLocally);
+                });
+              });
+          });
+        }
+      } else {
+        ToastAndroid.show(
+          'Please add atleast one food item',
+          ToastAndroid.SHORT,
+        );
+      }
+    } catch (error) {
+      console.log('Error adding food order to locally: ', error);
+    } finally {
+      setLoading(false);
+    }
+    // console.log('dataOnLocal: ', saveLocalFoodOrder);
+    // const categoryWithPortionMoreThan0 = showFoodCategoryItemTableData
+    //   .filter(category => category.totalRequestedPortionCount > 0)
+    //   .map(filteredCategory => {});
+    // console.log('categroy: ', categoryWithPortionMoreThan0);
   };
-
-  // const preloadAllData = () => {
-  //   let newFoodCategoryObj = [];
-  //   foodCategories.map((category, index) => {
-  //     const foodCategoryItems = fetchFoodItemsByCategoryId(
-  //       category?.localCategoryId,
-  //     );
-  //     let newFoodItemsArr = [];
-  //     foodCategoryItems.map(item => {
-  //       newFoodItemsArr.push({
-  //         serverOrderCategoryItemId: '',
-  //         displayOrder: '',
-  //         serverFoodItemId: item?.serverItemId,
-  //         requestedItemPortionCount: 0,
-  //       });
-  //       console.log('foodCategoryItems::: ', foodCategoryItems);
-  //     });
-  //     newFoodCategoryArr.push({
-  //       serverFoodOrderCategoryId: '',
-  //       displayOrder: '',
-  //       serverFoodCategoryId: category?.serverCategoryId,
-  //       totalRequestedPortionCount: 0,
-  //       orderCategoryItems: newFoodItemsArr,
-  //     });
-  //     setFoodCategoryItemsWithFoodItems(newFoodCategoryArr);
-  //     console.log('new categoey arr: ', newFoodCategoryArr);
-  //     // console.log('food category item: ', foodCategoryItemsWithFoodItems);
-  //   });
-  // };
 
   const preloadAllData = () => {
     let dataStructure = {
@@ -385,7 +419,7 @@ export const AddFoodOrderScreen = () => {
     });
     dataStructure.orderCategories = newOrderCategories;
     setFoodCategoryItemsWithFoodItems(dataStructure);
-    console.log('Final structured data:', dataStructure);
+    // console.log('Final structured data:', dataStructure);
   };
 
   const handleRefresh = () => {
@@ -393,15 +427,15 @@ export const AddFoodOrderScreen = () => {
     fetchFoodCategoriesData();
     fetchFoodItemsData();
     fetchFoodOrderTypeFromLocal();
-    preloadAllData();
+    fetchFacilityDataFromLocal();
+    fetchFoodOrderStatusDataFromLocal();
+    fetchFoodOrderFromLocal();
+    fetchFoodOrderCategoryFromLocal();
+    // preloadAllData();
   };
 
   useEffect(() => {
-    fetchFoodQuantityUnitsData();
-    fetchFoodCategoriesData();
-    fetchFoodItemsData();
-    fetchFoodOrderTypeFromLocal();
-    preloadAllData();
+    handleRefresh();
   }, []);
 
   useEffect(() => {
@@ -425,7 +459,7 @@ export const AddFoodOrderScreen = () => {
         rightButtonProps2={{
           btnText: 'Save',
           onPress: () => {
-            handleAddEditOrderPress();
+            saveFoodOrderLocally();
           },
         }}
       />
@@ -520,11 +554,7 @@ export const AddFoodOrderScreen = () => {
                                   onPress={() =>
                                     toggleCheckbox(catIndex, foodIndex)
                                   }>
-                                  {console.log(
-                                    'checkedItems: ',
-                                    checkedItems.has(foodItem?.localItemId),
-                                  )}
-                                  {checkedItems.has(foodItem?.localItemId) ? (
+                                  {foodItem?.isItemSelected ? (
                                     <IcCheckBoxActive />
                                   ) : (
                                     <IcCheckBoxInactive />
@@ -535,11 +565,7 @@ export const AddFoodOrderScreen = () => {
                                     {foodItem?.itemName}
                                   </Text>
                                   <Text style={styles.foodDetailItem()}>
-                                    {/* {(foodItemQuantities[
-                                      foodItem?.localItemId
-                                    ] || 0) > 0 && category.formattedString == "" ?
-                                      
-                                    } */}
+                                    {foodItem?.requestedPortionQuantityString}
                                   </Text>
                                 </View>
                               </View>
@@ -548,11 +574,7 @@ export const AddFoodOrderScreen = () => {
                                   activeOpacity={0.7}
                                   style={styles.iconview()}
                                   onPress={() =>
-                                    handleDecrementFoodItem(
-                                      catIndex,
-                                      // foodItem?.localItemId,
-                                      foodIndex,
-                                    )
+                                    handleDecrementFoodItem(catIndex, foodIndex)
                                   }>
                                   <IcMinus
                                     width={size.moderateScale(15)}
@@ -561,9 +583,7 @@ export const AddFoodOrderScreen = () => {
                                 </TouchableOpacity>
                                 <View style={styles.quantityTextView()}>
                                   <Text style={styles.quantityText()}>
-                                    {foodItemQuantities[
-                                      foodItem?.localItemId
-                                    ] || 0}
+                                    {foodItem.requestedItemPortionCount}
                                   </Text>
                                 </View>
                                 <TouchableOpacity

@@ -5,8 +5,9 @@ const showLog = true;
 
 export const addFoodOrder = records => {
   try {
+    const recordsArray = Array.isArray(records) ? records : [records];
     realm.write(() => {
-      records.forEach(record => {
+      recordsArray.forEach(record => {
         const existingRecord = realm
           .objects('FoodOrder')
           .filtered(`serverFoodOrderId = "${record.serverFoodOrderId}"`)[0];
@@ -23,7 +24,7 @@ export const addFoodOrder = records => {
         } else {
           showLog &&
             console.log(
-              `food order with id ${updateRecord.localFoodOrderId} already exists`,
+              `food order with id ${record.localFoodOrderId} already exists`,
             );
         }
       });
@@ -76,7 +77,7 @@ export const deleteFoodOrder = primaryKey => {
 export const fetchAllFoodOrders = () => {
   try {
     const foodOrders = realm.objects('FoodOrder');
-    return foodOrders;
+    return Array.from(foodOrders);
   } catch (error) {
     console.log('Error fetching all food orders in realm/crud: ', error);
   }
@@ -98,5 +99,21 @@ export const deleteManyFoodOrders = primaryKeys => {
     });
   } catch (error) {
     console.log('Error deleting many food orders in realm/crud: ', error);
+  }
+};
+
+export const deleteAllFoodOrders = () => {
+  try {
+    const foodOrders = realm.objects('FoodOrder');
+    if (foodOrders.length > 0) {
+      realm.write(() => {
+        realm.delete(foodOrders);
+        console.log('deleted all records');
+      });
+    } else {
+      showLog && console.log('food orders does not exists');
+    }
+  } catch (error) {
+    console.log('Error deleting all food orders in realm/crud: ', error);
   }
 };

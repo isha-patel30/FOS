@@ -6,3 +6,6 @@ export * from './Facility';
 export * from './FoodOrderStatus';
 export * from './FoodSubOrderStatus';
 export * from './FoodOrderType';
+export * from './FoodOrder';
+export * from './FoodOrderCategoryItem';
+export * from './FoodOrderCategory';
